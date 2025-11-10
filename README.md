@@ -16,7 +16,7 @@ An intelligent AI routing API that automatically selects the most cost-effective
 
 | Tier           | Monthly Requests | Premium Requests | Rate Limit | Price  |
 | -------------- | ---------------- | ---------------- | ---------- | ------ |
-| **FREE**       | 100              | 0                | 20/hour    | $0     |
+| **FREE**       | 100              | 0                | 50/hour    | $0     |
 | **BASIC**      | 2,000            | 0                | 200/hour   | $4.99  |
 | **PRO**        | 10,000           | 1,000            | 1,000/hour | $14.99 |
 | **ENTERPRISE** | 50,000           | 10,000           | 5,000/hour | $49.99 |
