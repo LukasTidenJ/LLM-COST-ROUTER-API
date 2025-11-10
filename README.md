@@ -21,7 +21,7 @@ An intelligent AI routing API that automatically selects the most cost-effective
 | **PRO**        | 10,000           | 1,000            | 1,000/hour | $14.99 |
 | **ENTERPRISE** | 50,000           | 10,000           | 5,000/hour | $49.99 |
 
-## 🤖 Supported Models
+## Supported Models
 
 ### Standard Models (FREE, BASIC, PRO, ENTERPRISE)
 
@@ -42,7 +42,7 @@ An intelligent AI routing API that automatically selects the most cost-effective
 | `claude-3-5-haiku-20241022` | Anthropic | $0.25/1M   | $1.25/1M    | Fast Claude responses  |
 | `claude-sonnet-4-20250514`  | Anthropic | $3.00/1M   | $15.00/1M   | High-quality reasoning |
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Installation
 
