@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 8000;
 // Response Cache - 1 hour TTL, check every 10 minutes
 const responseCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
+// Premium request tracker - Reset monthly (30 days TTL)
+const premiumRequestTracker = new NodeCache({ stdTTL: 2592000, checkperiod: 86400 });
+
 // Rate Limiting - 100 requests per 15 minutes per IP
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -31,23 +34,47 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/', limiter); // Apply rate limiting to API routes
 
+// Subscription tier limits
+const SUBSCRIPTION_LIMITS = {
+  FREE: {
+    total_requests: 50,
+    premium_requests: 0,
+    rate_limit_per_hour: 10,
+  },
+  BASIC: {
+    total_requests: 2000,
+    premium_requests: 0,
+    rate_limit_per_hour: 100,
+  },
+  PRO: {
+    total_requests: 10000,
+    premium_requests: 1000,
+    rate_limit_per_hour: 500,
+  },
+  ENTERPRISE: {
+    total_requests: 50000,
+    premium_requests: 10000,
+    rate_limit_per_hour: 2000,
+  },
+};
+
 const PRICING = {
-  // OpenAI Models
-  'gpt-3.5-turbo': { input: 0.0005, output: 0.0015, provider: 'openai' },
-  'gpt-4o-mini': { input: 0.00015, output: 0.0006, provider: 'openai' },
+  // OpenAI Models (Premium)
+  'gpt-3.5-turbo': { input: 0.0005, output: 0.0015, provider: 'openai', tier: 'premium' },
+  'gpt-4o-mini': { input: 0.00015, output: 0.0006, provider: 'openai', tier: 'premium' },
 
-  // Anthropic Models
-  'claude-3-haiku': { input: 0.00025, output: 0.00125, provider: 'anthropic' },
-  'claude-3-5-sonnet': { input: 0.003, output: 0.015, provider: 'anthropic' },
+  // Anthropic Models (Premium)
+  'claude-3-5-haiku-20241022': { input: 0.00025, output: 0.00125, provider: 'anthropic', tier: 'premium' },
+  'claude-sonnet-4-20250514': { input: 0.003, output: 0.015, provider: 'anthropic', tier: 'premium' },
 
-  // DeepSeek Models
-  'deepseek-chat': { input: 0.00014, output: 0.00028, provider: 'deepseek' },
-  'deepseek-coder': { input: 0.00014, output: 0.00028, provider: 'deepseek' },
+  // DeepSeek Models (Standard)
+  'deepseek-chat': { input: 0.00014, output: 0.00028, provider: 'deepseek', tier: 'standard' },
+  'deepseek-coder': { input: 0.00014, output: 0.00028, provider: 'deepseek', tier: 'standard' },
 
-  // Qwen Models
-  'qwen-turbo': { input: 0.0002, output: 0.0006, provider: 'qwen' },
-  'qwen-plus': { input: 0.0004, output: 0.0012, provider: 'qwen' },
-  'qwen-max': { input: 0.002, output: 0.006, provider: 'qwen' },
+  // Qwen Models (Standard)
+  'qwen-turbo': { input: 0.0002, output: 0.0006, provider: 'qwen', tier: 'standard' },
+  'qwen-plus': { input: 0.0004, output: 0.0012, provider: 'qwen', tier: 'standard' },
+  'qwen-max': { input: 0.002, output: 0.006, provider: 'qwen', tier: 'standard' },
 };
 
 const estimateTokens = (text) => {
@@ -244,12 +271,12 @@ const selectModel = (complexity, preferCost, intent) => {
 
   // Creative writing → Use better model even if prefer_cost
   if (intent === 'creative') {
-    return preferCost ? 'qwen-plus' : 'claude-3-5-sonnet';
+    return preferCost ? 'qwen-plus' : 'claude-sonnet-4-20250514';
   }
 
   // Analysis/Research → Use better models for accuracy
   if (intent === 'analysis') {
-    return preferCost ? 'qwen-plus' : 'claude-3-5-sonnet';
+    return preferCost ? 'qwen-plus' : 'claude-sonnet-4-20250514';
   }
 
   // General queries - use complexity-based routing
@@ -270,7 +297,7 @@ const selectModel = (complexity, preferCost, intent) => {
   if (complexity === 'medium') {
     return 'qwen-plus';
   }
-  return 'claude-3-5-sonnet';
+  return 'claude-sonnet-4-20250514';
 };
 
 const calculateCost = (model, inputTokens, outputTokens) => {
@@ -290,6 +317,27 @@ const getCachedResponse = (cacheKey) => {
 
 const setCachedResponse = (cacheKey, response) => {
   responseCache.set(cacheKey, response);
+};
+
+// Premium request tracking
+const getUserPremiumUsage = (userId) => {
+  const usage = premiumRequestTracker.get(userId);
+  return usage || { count: 0, reset_at: Date.now() + 2592000000 }; // 30 days from now
+};
+
+const incrementPremiumUsage = (userId) => {
+  const usage = getUserPremiumUsage(userId);
+  usage.count += 1;
+  premiumRequestTracker.set(userId, usage);
+  return usage.count;
+};
+
+const canUsePremiumModel = (userId, userTier) => {
+  const limits = SUBSCRIPTION_LIMITS[userTier] || SUBSCRIPTION_LIMITS.FREE;
+  if (limits.premium_requests === 0) return false;
+
+  const usage = getUserPremiumUsage(userId);
+  return usage.count < limits.premium_requests;
 };
 
 const evaluateResponse = async (userPrompt, response, modelUsed) => {
@@ -543,6 +591,11 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Messages array is required' });
     }
 
+    // Get user subscription tier from RapidAPI headers
+    // For local testing, use x-test-tier header
+    const userTier = req.headers['x-test-tier'] || req.headers['x-rapidapi-subscription'] || 'FREE';
+    const userId = req.headers['x-rapidapi-user'] || req.headers['x-api-key'] || 'test-user';
+
     // Check cache for non-streaming requests
     if (!stream) {
       const cacheKey = generateCacheKey(messages, max_tokens, temperature, prefer_cost);
@@ -562,6 +615,30 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
     const intent = analyzeIntent(messages);
     let selectedModel = selectModel(complexity, prefer_cost, intent);
     let retryAttempt = 0;
+
+    // Check if selected model is premium and if user has access
+    const isPremiumModel = PRICING[selectedModel]?.tier === 'premium';
+    const hasPremiumAccess = canUsePremiumModel(userId, userTier);
+    const premiumUsage = getUserPremiumUsage(userId);
+    const premiumLimit = SUBSCRIPTION_LIMITS[userTier]?.premium_requests || 0;
+
+    // Downgrade to standard model if premium not available
+    if (isPremiumModel && !hasPremiumAccess) {
+      console.log(`[TIER] User ${userId} (${userTier}) hit premium limit. Downgrading to standard model.`);
+      // Select best standard model based on complexity
+      if (complexity === 'simple') {
+        selectedModel = 'deepseek-chat';
+      } else if (complexity === 'medium') {
+        selectedModel = 'qwen-turbo';
+      } else {
+        selectedModel = 'qwen-plus';
+      }
+    }
+
+    // Track premium usage if using premium model
+    if (PRICING[selectedModel]?.tier === 'premium' && hasPremiumAccess) {
+      incrementPremiumUsage(userId);
+    }
 
     // Handle streaming requests
     if (stream) {
@@ -642,7 +719,7 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
         }
 
         const cost = calculateCost(selectedModel, inputTokens, outputTokens);
-        const gpt4Cost = calculateCost('claude-3-5-sonnet', inputTokens, outputTokens);
+        const gpt4Cost = calculateCost('claude-sonnet-4-20250514', inputTokens, outputTokens);
         const savings = Math.max(0, gpt4Cost - cost);
 
         // Evaluate response quality with LLM-as-Judge
@@ -663,6 +740,7 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
         }
 
         // Send final metadata with quality score
+        const updatedPremiumUsage = getUserPremiumUsage(userId);
         res.write(
           `data: ${JSON.stringify({
             done: true,
@@ -679,6 +757,10 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
               strengths: evaluation.strengths,
               weaknesses: evaluation.weaknesses,
             },
+            subscription_tier: userTier,
+            premium_requests_used: updatedPremiumUsage.count,
+            premium_requests_limit: premiumLimit,
+            premium_requests_remaining: Math.max(0, premiumLimit - updatedPremiumUsage.count),
           })}\n\n`
         );
 
@@ -742,16 +824,17 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
         } else if (selectedModel === 'qwen-turbo') {
           selectedModel = 'qwen-plus';
         } else if (selectedModel === 'qwen-plus') {
-          selectedModel = 'claude-3-5-sonnet';
+          selectedModel = 'claude-sonnet-4-20250514';
         } else {
           // Already using best model, break
           break;
         }
       }
 
-      const gpt4Cost = calculateCost('claude-3-5-sonnet', result.inputTokens, result.outputTokens);
+      const gpt4Cost = calculateCost('claude-sonnet-4-20250514', result.inputTokens, result.outputTokens);
       const savings = Math.max(0, gpt4Cost - totalCost);
 
+      const updatedPremiumUsage = getUserPremiumUsage(userId);
       const responseData = {
         response: result.content,
         model_used: selectedModel,
@@ -774,6 +857,10 @@ app.post('/api/v1/chat/completions', authMiddleware, async (req, res) => {
           cost_per_1m: `$${(((PRICING[selectedModel].input + PRICING[selectedModel].output) / 2) * 1000).toFixed(2)}`,
           provider: PRICING[selectedModel].provider,
         },
+        subscription_tier: userTier,
+        premium_requests_used: updatedPremiumUsage.count,
+        premium_requests_limit: premiumLimit,
+        premium_requests_remaining: Math.max(0, premiumLimit - updatedPremiumUsage.count),
       };
 
       // Cache the successful response
@@ -808,8 +895,8 @@ app.get('/api/v1/models/available', (req, res) => {
   });
 });
 
-// Cache statistics endpoint
-app.get('/api/v1/cache/stats', authMiddleware, (req, res) => {
+// Cache statistics endpoint (public for monitoring)
+app.get('/api/v1/cache/stats', (req, res) => {
   const stats = responseCache.getStats();
   res.json({
     cache_enabled: true,
