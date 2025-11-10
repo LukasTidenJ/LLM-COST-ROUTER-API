@@ -346,6 +346,4 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 ---
 
-Built with ❤️ by [LukasTidenJ](https://github.com/LukasTidenJ)
-
 **Made possible by**: OpenAI, Anthropic, DeepSeek, and Qwen
