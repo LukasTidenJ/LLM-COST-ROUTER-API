@@ -1,48 +1,86 @@
 # LLM Cost Router API
 
-Smart AI routing that saves **40-60% on AI costs** by automatically selecting the most cost-effective model for your queries.
+An intelligent AI routing API that automatically selects the most cost-effective language model based on your request's intent and complexity. Save up to **85-90% on AI API costs** while maintaining quality.
 
-## Why This API?
+## 🚀 Why This API?
 
-- **Massive Cost Savings**: Automatically route simple queries to ultra-cheap models like DeepSeek ($0.14/1M tokens)
-- **8 Premium Models**: Access OpenAI, Anthropic, DeepSeek, and Qwen models through one API
+- **Massive Cost Savings**: Automatically route requests to ultra-cheap models like DeepSeek ($0.14/1M tokens)
+- **9 AI Models**: Access OpenAI, Anthropic, DeepSeek, and Qwen models through one unified API
+- **Intelligent Routing**: Intent detection (coding, math, creative, etc.) + complexity analysis
+- **Response Caching**: 1-hour cache eliminates redundant API calls
+- **Quality Scoring**: LLM-as-Judge evaluation ensures high-quality responses
 - **Real-time Streaming**: Get instant token-by-token responses
-- **Smart Routing**: Complexity-based model selection ensures quality while minimizing costs
-- **Transparent Pricing**: See exactly how much you save vs GPT-4 on every request
+- **Subscription Tiers**: From FREE (100 req/month) to ENTERPRISE (50K req/month)
 
-## Supported Models
+## 📊 Subscription Tiers
 
-| Model            | Provider  | Cost (per 1M tokens) | Best For                  |
-| ---------------- | --------- | -------------------- | ------------------------- |
-| `deepseek-chat`  | DeepSeek  | $0.14                | Ultra-cheap general tasks |
-| `deepseek-coder` | DeepSeek  | $0.14                | Code generation           |
-| `qwen-turbo`     | Alibaba   | $0.40                | Fast, cheap responses     |
-| `qwen-plus`      | Alibaba   | $0.80                | Balanced quality/cost     |
-| `qwen-max`       | Alibaba   | $4.00                | High quality tasks        |
-| `gpt-4o-mini`    | OpenAI    | $0.38                | Simple OpenAI tasks       |
-| `gpt-3.5-turbo`  | OpenAI    | $1.00                | Standard ChatGPT          |
-| `claude-3-haiku` | Anthropic | $0.69                | Fast Claude responses     |
+| Tier | Monthly Requests | Premium Requests | Rate Limit | Price |
+|------|-----------------|------------------|------------|-------|
+| **FREE** | 100 | 0 | 20/hour | $0 |
+| **BASIC** | 2,000 | 0 | 200/hour | $4.99 |
+| **PRO** | 10,000 | 1,000 | 1,000/hour | $14.99 |
+| **ENTERPRISE** | 50,000 | 10,000 | 5,000/hour | $49.99 |
 
-## Quick Start
+## 🤖 Supported Models
+
+### Standard Models (All Tiers)
+| Model            | Provider  | Input Cost | Output Cost | Best For                  |
+| ---------------- | --------- | ---------- | ----------- | ------------------------- |
+| `deepseek-chat`  | DeepSeek  | $0.14/1M   | $0.28/1M    | Ultra-cheap general tasks |
+| `deepseek-coder` | DeepSeek  | $0.14/1M   | $0.28/1M    | Code generation           |
+| `qwen-turbo`     | Qwen      | $0.30/1M   | $0.60/1M    | Fast, cheap responses     |
+| `qwen-plus`      | Qwen      | $0.80/1M   | $2.00/1M    | Balanced quality/cost     |
+| `gpt-4o-mini`    | OpenAI    | $0.15/1M   | $0.60/1M    | Simple OpenAI tasks       |
+| `gpt-3.5-turbo`  | OpenAI    | $0.50/1M   | $1.50/1M    | Standard ChatGPT          |
+
+### Premium Models (PRO & ENTERPRISE Only)
+| Model                       | Provider  | Input Cost | Output Cost | Best For                |
+| --------------------------- | --------- | ---------- | ----------- | ----------------------- |
+| `claude-3-5-haiku-20241022` | Anthropic | $1.00/1M   | $5.00/1M    | Fast Claude responses   |
+| `claude-sonnet-4-20250514`  | Anthropic | $3.00/1M   | $15.00/1M   | High-quality reasoning  |
+| `qwen-max`                  | Qwen      | $2.00/1M   | $6.00/1M    | Advanced Chinese/English|
+
+## ⚡ Quick Start
 
 ### Installation
 
 ```bash
+git clone https://github.com/LukasTidenJ/LLM-COST-ROUTER-API.git
+cd LLM-COST-ROUTER-API
 npm install
-cp .env.example .env
-# Add your API keys to .env
+```
+
+### Configuration
+
+Create a `.env` file:
+```env
+PORT=8000
+ROUTER_API_KEY=your-secret-key-here
+
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+DEEPSEEK_API_KEY=sk-...
+QWEN_API_KEY=sk-...
+```
+
+### Start Server
+
+```bash
 npm start
 ```
 
-### Basic Usage
+The API will be available at `http://localhost:8000`
+
+## 📡 API Usage
+
+### Basic Request
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "x-api-key: your-api-key" \
   -d '{
-    "messages": [{"role": "user", "content": "Explain quantum computing"}],
-    "prefer_cost": true,
+    "messages": [{"role": "user", "content": "Explain quantum computing in simple terms"}],
     "stream": false
   }'
 ```
@@ -54,12 +92,12 @@ curl -X POST http://localhost:8000/api/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "x-api-key: your-api-key" \
   -d '{
-    "messages": [{"role": "user", "content": "Write a story"}],
+    "messages": [{"role": "user", "content": "Write a short story about AI"}],
     "stream": true
   }'
 ```
 
-## API Endpoints
+## 🔌 API Endpoints
 
 ### `POST /api/v1/chat/completions`
 
@@ -69,10 +107,11 @@ Main endpoint for chat completions.
 
 ```json
 {
-  "messages": [{ "role": "user", "content": "Your question here" }],
-  "max_tokens": 1000,
+  "messages": [
+    {"role": "user", "content": "Your question here"}
+  ],
+  "max_tokens": 4000,
   "temperature": 0.7,
-  "prefer_cost": true,
   "stream": false
 }
 ```
@@ -81,119 +120,220 @@ Main endpoint for chat completions.
 
 ```json
 {
-  "response": "AI generated response...",
-  "model_used": "deepseek-chat",
-  "estimated_cost": 0.000042,
-  "tokens_used": 150,
-  "savings_vs_gpt4": 0.000358
+  "id": "chatcmpl-123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "deepseek-chat",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "AI generated response..."
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 20,
+    "completion_tokens": 150,
+    "total_tokens": 170
+  },
+  "cost": {
+    "input_cost": 0.000002,
+    "output_cost": 0.00003,
+    "total_cost": 0.000032
+  },
+  "metadata": {
+    "intent": "general",
+    "complexity": "medium",
+    "selected_model": "deepseek-chat",
+    "cached": false,
+    "quality_score": 8.5
+  }
 }
 ```
 
-### `GET /api/v1/models/available`
-
-Get all available models and pricing.
-
 ### `GET /api/v1/status`
 
-Health check and API status.
+Check API health and your subscription status.
 
-## Smart Routing Logic
-
-The API automatically selects the best model based on:
-
-1. **Task Complexity**: Analyzes token count to classify as simple/medium/complex
-2. **Cost Preference**: Routes to cheapest model when `prefer_cost: true`
-3. **Quality Requirements**: Uses better models for complex tasks
-
-**Example Routing:**
-
-- Simple query (< 500 tokens) + prefer_cost → `deepseek-chat` ($0.14/1M)
-- Medium query (< 2000 tokens) + prefer_cost → `qwen-turbo` ($0.40/1M)
-- Complex query (> 2000 tokens) + prefer_cost → `qwen-plus` ($0.80/1M)
-
-## Cost Savings Example
-
-**Your costs WITHOUT this API:**
-
-- 100K requests to GPT-4: ~$300
-- 100K requests to GPT-3.5-turbo: ~$100
-
-**With Smart Routing:**
-
-- 70% simple queries → DeepSeek: $1.40
-- 20% medium queries → Qwen: $1.60
-- 10% complex queries → Claude/Qwen: $8.00
-- **Total: ~$11** (89% savings!) 🎉
-
-## 🚀 Deploying to RapidAPI
-
-1. **Get API Keys**: Sign up for DeepSeek and Qwen (both have free tiers)
-   - DeepSeek: https://platform.deepseek.com/
-   - Qwen: https://dashscope.console.aliyun.com/
-
-2. **Set Environment Variables** in your hosting provider:
-
-   ```
-   ROUTER_API_KEY=your-secret-key
-   DEEPSEEK_API_KEY=sk-xxx
-   QWEN_API_KEY=sk-xxx
-   ```
-
-3. **Deploy** to Railway, Render, or any Node.js host
-
-4. **List on RapidAPI**:
-   - Category: AI/Machine Learning
-   - Highlight: "Save 40-60% on AI costs"
-   - Pricing tiers: Basic ($9.99), Pro ($49.99), Ultra ($199)
-
-## 🔧 Environment Variables
-
-```env
-PORT=8000
-NODE_ENV=production
-ROUTER_API_KEY=your-secure-key
-DEEPSEEK_API_KEY=sk-xxx
-QWEN_API_KEY=sk-xxx
-OPENAI_API_KEY=sk-xxx (optional)
-ANTHROPIC_API_KEY=sk-xxx (optional)
+```json
+{
+  "status": "ok",
+  "tier": "PRO",
+  "quota_remaining": 9847,
+  "premium_remaining": 998,
+  "rate_limit": "1000/hour"
+}
 ```
 
-## 📊 Test Client
+### `GET /api/v1/cache/stats`
 
-Open `test-client.html` in your browser to test the API with a beautiful UI:
+View cache hit/miss statistics.
 
-- Toggle streaming on/off
-- See real-time cost calculations
-- Compare model performance
-- View savings analytics
+### `GET /api/v1/models/available`
 
-## 🎨 Features
+Get all available models and their pricing.
 
-✅ 8 AI models from 4 providers  
-✅ Real-time streaming responses  
-✅ Automatic cost optimization  
-✅ Multi-provider fallback  
-✅ RapidAPI ready  
-✅ Usage analytics  
-✅ Beautiful test client
+## 🎯 How Intelligent Routing Works
 
-## 📈 Recommended RapidAPI Pricing
+### 1. Intent Detection (7 Categories)
 
-**Free Tier**: 100 requests/month (Hook them!)  
-**Basic ($9.99/mo)**: 10K requests, DeepSeek + Qwen only  
-**Pro ($49.99/mo)**: 100K requests, all models  
-**Ultra ($199/mo)**: Unlimited, priority routing
+The API analyzes your prompt to determine the task type:
 
-Your profit margin: Charge $0.001/request, your cost: $0.0002 = **80% profit** 💰
+- **Coding** → Routes to `deepseek-coder` (specialized for code)
+- **Math/Logic** → Routes to `deepseek-chat` (excellent reasoning)
+- **Creative Writing** → Routes to Claude models (best for creativity)
+- **Analysis/Reasoning** → Routes to Claude models (superior analysis)
+- **Translation** → Routes to `qwen-plus` or `qwen-max` (multilingual)
+- **Summarization** → Routes to cost-effective models
+- **General** → Routes to most cost-effective model
 
-## 📝 License
+### 2. Complexity Analysis
 
-MIT
+- **Low** (<500 tokens) → Cheapest models (DeepSeek, Qwen-Turbo)
+- **Medium** (500-2000 tokens) → Balanced models (Qwen-Plus, GPT-4o-mini)
+- **High** (>2000 tokens) → Premium models if quota available (Claude, Qwen-Max)
 
-## 🤝 Support
+### 3. Quality Assurance
 
-Questions? Open an issue or reach out!
+- All responses evaluated by LLM-as-Judge
+- Low-quality responses (<7/10) trigger automatic retry with better model
+- Ensures you get quality even when using cheap models
+
+## 💰 Cost Savings Example
+
+### Traditional Approach (GPT-4 for Everything)
+- 10,000 requests/month
+- Average 500 tokens per request
+- Cost: **~$150-200/month**
+
+### With LLM Cost Router
+- Same 10,000 requests/month
+- 60% routed to DeepSeek: $4.20
+- 25% routed to Qwen: $5.00
+- 15% routed to GPT/Claude: $18.00
+- **Total: ~$27/month**
+
+**Savings: 85-90%** 🎉
+
+## 🚀 Features
+
+### Response Caching
+- 1-hour TTL for identical requests
+- Eliminates redundant API calls
+- Dramatically reduces costs for repeated queries
+
+### Quality Scoring
+- LLM-as-Judge evaluation (1-10 scale)
+- Automatic retry with better model if quality < 7
+- Ensures high-quality responses even from cheap models
+
+### Streaming Support
+- Real-time token-by-token responses
+- Better user experience
+- Works with all models
+
+### Rate Limiting
+- Tier-based limits prevent abuse
+- 15-minute rolling windows
+- Automatic 429 responses when exceeded
+
+## 🔧 Deployment
+
+### Prerequisites
+- Node.js 16+
+- API keys from providers:
+  - [OpenAI](https://platform.openai.com/)
+  - [Anthropic](https://console.anthropic.com/)
+  - [DeepSeek](https://platform.deepseek.com/)
+  - [Qwen](https://dashscope.console.aliyun.com/)
+
+### Deploy to Render (Free Tier)
+
+1. Create account at [Render.com](https://render.com)
+2. Create new Web Service, connect your GitHub repo
+3. Set environment variables in Render dashboard
+4. Deploy!
+
+### RapidAPI Integration
+
+This API is available on RapidAPI Marketplace:
+- **Marketplace URL**: [Coming Soon]
+- **Category**: AI/Machine Learning
+- **Highlight**: Save up to 90% on AI API costs
+
+## � Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `PORT` | Server port (default: 8000) | No |
+| `ROUTER_API_KEY` | Your API authentication key | Yes |
+| `OPENAI_API_KEY` | OpenAI API key | Yes |
+| `ANTHROPIC_API_KEY` | Anthropic API key | Yes |
+| `DEEPSEEK_API_KEY` | DeepSeek API key | Yes |
+| `QWEN_API_KEY` | Qwen API key | Yes |
+
+## 🎯 Use Cases
+
+- **Chatbots**: Reduce AI costs for customer support bots by 85%+
+- **Content Generation**: Smart routing for different content types
+- **Code Assistance**: Automatic selection of specialized coding models
+- **Research**: Cost-effective analysis and summarization
+- **Education**: Affordable AI tutoring and learning assistance
+- **Data Analysis**: Handle large datasets with cost-optimized models
+
+## 🔒 Security
+
+- API key authentication on every request
+- Rate limiting prevents abuse
+- Environment variables keep secrets secure
+- No data stored or logged permanently
+- All requests are ephemeral
+
+## 📈 Monitoring Your Usage
+
+Check your usage with the `/status` endpoint:
+
+```bash
+curl -H "x-api-key: your-key" http://localhost:8000/api/v1/status
+```
+
+Response includes:
+- Current subscription tier
+- Request quota remaining
+- Premium request quota
+- Rate limit status
+- Monthly reset date
+
+## 💬 Support Levels
+
+- **FREE**: Community support via GitHub Issues
+- **BASIC**: Email support (24-48h response)
+- **PRO**: Priority email support (12-24h response)
+- **ENTERPRISE**: Dedicated support channel
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## � License
+
+MIT License - feel free to use this project for personal or commercial purposes.
+
+## 🔗 Links
+
+- **GitHub**: https://github.com/LukasTidenJ/LLM-COST-ROUTER-API
+- **RapidAPI**: [Coming Soon]
+- **Issues**: https://github.com/LukasTidenJ/LLM-COST-ROUTER-API/issues
 
 ---
 
-**Pro tip**: With DeepSeek costing only $0.14 per million tokens, even a small markup makes this insanely profitable. Your 40-60% savings vs GPT-4 becomes YOUR profit margin! 🚀
+Built with ❤️ by [LukasTidenJ](https://github.com/LukasTidenJ)
+
+**Made possible by**: OpenAI, Anthropic, DeepSeek, and Qwen 🚀
