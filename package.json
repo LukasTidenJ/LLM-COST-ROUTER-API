@@ -1,0 +1,33 @@
+{
+  "name": "llm-cost-router",
+  "version": "1.0.0",
+  "description": "Smart LLM routing API that saves 40-60% on AI costs",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "llm",
+    "ai",
+    "router",
+    "cost-optimization",
+    "openai",
+    "anthropic"
+  ],
+  "author": "Lukas Tidén Jonsson",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "tiktoken": "^1.0.10"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
