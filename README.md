@@ -2,7 +2,7 @@
 
 An intelligent AI routing API that automatically selects the most cost-effective language model based on your request's intent and complexity. Save up to **85-90% on AI API costs** while maintaining quality.
 
-## 🚀 Why This API?
+## Why This API?
 
 - **Massive Cost Savings**: Automatically route requests to ultra-cheap models like DeepSeek ($0.14/1M tokens)
 - **9 AI Models**: Access OpenAI, Anthropic, DeepSeek, and Qwen models through one unified API
@@ -12,33 +12,35 @@ An intelligent AI routing API that automatically selects the most cost-effective
 - **Real-time Streaming**: Get instant token-by-token responses
 - **Subscription Tiers**: From FREE (100 req/month) to ENTERPRISE (50K req/month)
 
-## 📊 Subscription Tiers
+## Subscription Tiers
 
-| Tier | Monthly Requests | Premium Requests | Rate Limit | Price |
-|------|-----------------|------------------|------------|-------|
-| **FREE** | 100 | 0 | 20/hour | $0 |
-| **BASIC** | 2,000 | 0 | 200/hour | $4.99 |
-| **PRO** | 10,000 | 1,000 | 1,000/hour | $14.99 |
-| **ENTERPRISE** | 50,000 | 10,000 | 5,000/hour | $49.99 |
+| Tier           | Monthly Requests | Premium Requests | Rate Limit | Price  |
+| -------------- | ---------------- | ---------------- | ---------- | ------ |
+| **FREE**       | 100              | 0                | 20/hour    | $0     |
+| **BASIC**      | 2,000            | 0                | 200/hour   | $4.99  |
+| **PRO**        | 10,000           | 1,000            | 1,000/hour | $14.99 |
+| **ENTERPRISE** | 50,000           | 10,000           | 5,000/hour | $49.99 |
 
 ## 🤖 Supported Models
 
-### Standard Models (All Tiers)
-| Model            | Provider  | Input Cost | Output Cost | Best For                  |
-| ---------------- | --------- | ---------- | ----------- | ------------------------- |
-| `deepseek-chat`  | DeepSeek  | $0.14/1M   | $0.28/1M    | Ultra-cheap general tasks |
-| `deepseek-coder` | DeepSeek  | $0.14/1M   | $0.28/1M    | Code generation           |
-| `qwen-turbo`     | Qwen      | $0.30/1M   | $0.60/1M    | Fast, cheap responses     |
-| `qwen-plus`      | Qwen      | $0.80/1M   | $2.00/1M    | Balanced quality/cost     |
-| `gpt-4o-mini`    | OpenAI    | $0.15/1M   | $0.60/1M    | Simple OpenAI tasks       |
-| `gpt-3.5-turbo`  | OpenAI    | $0.50/1M   | $1.50/1M    | Standard ChatGPT          |
+### Standard Models (FREE, BASIC, PRO, ENTERPRISE)
 
-### Premium Models (PRO & ENTERPRISE Only)
-| Model                       | Provider  | Input Cost | Output Cost | Best For                |
-| --------------------------- | --------- | ---------- | ----------- | ----------------------- |
-| `claude-3-5-haiku-20241022` | Anthropic | $1.00/1M   | $5.00/1M    | Fast Claude responses   |
-| `claude-sonnet-4-20250514`  | Anthropic | $3.00/1M   | $15.00/1M   | High-quality reasoning  |
-| `qwen-max`                  | Qwen      | $2.00/1M   | $6.00/1M    | Advanced Chinese/English|
+| Model            | Provider | Input Cost | Output Cost | Best For                  |
+| ---------------- | -------- | ---------- | ----------- | ------------------------- |
+| `deepseek-chat`  | DeepSeek | $0.14/1M   | $0.28/1M    | Ultra-cheap general tasks |
+| `deepseek-coder` | DeepSeek | $0.14/1M   | $0.28/1M    | Code generation           |
+| `qwen-turbo`     | Qwen     | $0.20/1M   | $0.60/1M    | Fast, cheap responses     |
+| `qwen-plus`      | Qwen     | $0.40/1M   | $1.20/1M    | Balanced quality/cost     |
+| `qwen-max`       | Qwen     | $2.00/1M   | $6.00/1M    | High-quality multilingual |
+
+### Premium Models (PRO & ENTERPRISE Only - Requires Premium Quota)
+
+| Model                       | Provider  | Input Cost | Output Cost | Best For               |
+| --------------------------- | --------- | ---------- | ----------- | ---------------------- |
+| `gpt-4o-mini`               | OpenAI    | $0.15/1M   | $0.60/1M    | Simple OpenAI tasks    |
+| `gpt-3.5-turbo`             | OpenAI    | $0.50/1M   | $1.50/1M    | Standard ChatGPT       |
+| `claude-3-5-haiku-20241022` | Anthropic | $0.25/1M   | $1.25/1M    | Fast Claude responses  |
+| `claude-sonnet-4-20250514`  | Anthropic | $3.00/1M   | $15.00/1M   | High-quality reasoning |
 
 ## ⚡ Quick Start
 
@@ -53,6 +55,7 @@ npm install
 ### Configuration
 
 Create a `.env` file:
+
 ```env
 PORT=8000
 ROUTER_API_KEY=your-secret-key-here
@@ -71,7 +74,7 @@ npm start
 
 The API will be available at `http://localhost:8000`
 
-## 📡 API Usage
+## API Usage
 
 ### Basic Request
 
@@ -97,7 +100,7 @@ curl -X POST http://localhost:8000/api/v1/chat/completions \
   }'
 ```
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### `POST /api/v1/chat/completions`
 
@@ -107,9 +110,7 @@ Main endpoint for chat completions.
 
 ```json
 {
-  "messages": [
-    {"role": "user", "content": "Your question here"}
-  ],
+  "messages": [{ "role": "user", "content": "Your question here" }],
   "max_tokens": 4000,
   "temperature": 0.7,
   "stream": false
@@ -124,14 +125,16 @@ Main endpoint for chat completions.
   "object": "chat.completion",
   "created": 1677652288,
   "model": "deepseek-chat",
-  "choices": [{
-    "index": 0,
-    "message": {
-      "role": "assistant",
-      "content": "AI generated response..."
-    },
-    "finish_reason": "stop"
-  }],
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "AI generated response..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
   "usage": {
     "prompt_tokens": 20,
     "completion_tokens": 150,
@@ -174,7 +177,7 @@ View cache hit/miss statistics.
 
 Get all available models and their pricing.
 
-## 🎯 How Intelligent Routing Works
+## How Intelligent Routing Works
 
 ### 1. Intent Detection (7 Categories)
 
@@ -200,47 +203,54 @@ The API analyzes your prompt to determine the task type:
 - Low-quality responses (<7/10) trigger automatic retry with better model
 - Ensures you get quality even when using cheap models
 
-## 💰 Cost Savings Example
+## Cost Savings Example
 
 ### Traditional Approach (GPT-4 for Everything)
+
 - 10,000 requests/month
 - Average 500 tokens per request
 - Cost: **~$150-200/month**
 
 ### With LLM Cost Router
+
 - Same 10,000 requests/month
 - 60% routed to DeepSeek: $4.20
 - 25% routed to Qwen: $5.00
 - 15% routed to GPT/Claude: $18.00
 - **Total: ~$27/month**
 
-**Savings: 85-90%** 🎉
+**Savings: 85-90%**
 
-## 🚀 Features
+## Features
 
 ### Response Caching
+
 - 1-hour TTL for identical requests
 - Eliminates redundant API calls
 - Dramatically reduces costs for repeated queries
 
 ### Quality Scoring
+
 - LLM-as-Judge evaluation (1-10 scale)
 - Automatic retry with better model if quality < 7
 - Ensures high-quality responses even from cheap models
 
 ### Streaming Support
+
 - Real-time token-by-token responses
 - Better user experience
 - Works with all models
 
 ### Rate Limiting
+
 - Tier-based limits prevent abuse
 - 15-minute rolling windows
 - Automatic 429 responses when exceeded
 
-## 🔧 Deployment
+## Deployment
 
 ### Prerequisites
+
 - Node.js 16+
 - API keys from providers:
   - [OpenAI](https://platform.openai.com/)
@@ -258,22 +268,23 @@ The API analyzes your prompt to determine the task type:
 ### RapidAPI Integration
 
 This API is available on RapidAPI Marketplace:
+
 - **Marketplace URL**: [Coming Soon]
 - **Category**: AI/Machine Learning
 - **Highlight**: Save up to 90% on AI API costs
 
 ## � Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `PORT` | Server port (default: 8000) | No |
-| `ROUTER_API_KEY` | Your API authentication key | Yes |
-| `OPENAI_API_KEY` | OpenAI API key | Yes |
-| `ANTHROPIC_API_KEY` | Anthropic API key | Yes |
-| `DEEPSEEK_API_KEY` | DeepSeek API key | Yes |
-| `QWEN_API_KEY` | Qwen API key | Yes |
+| Variable            | Description                 | Required |
+| ------------------- | --------------------------- | -------- |
+| `PORT`              | Server port (default: 8000) | No       |
+| `ROUTER_API_KEY`    | Your API authentication key | Yes      |
+| `OPENAI_API_KEY`    | OpenAI API key              | Yes      |
+| `ANTHROPIC_API_KEY` | Anthropic API key           | Yes      |
+| `DEEPSEEK_API_KEY`  | DeepSeek API key            | Yes      |
+| `QWEN_API_KEY`      | Qwen API key                | Yes      |
 
-## 🎯 Use Cases
+## Use Cases
 
 - **Chatbots**: Reduce AI costs for customer support bots by 85%+
 - **Content Generation**: Smart routing for different content types
@@ -282,7 +293,7 @@ This API is available on RapidAPI Marketplace:
 - **Education**: Affordable AI tutoring and learning assistance
 - **Data Analysis**: Handle large datasets with cost-optimized models
 
-## 🔒 Security
+## Security
 
 - API key authentication on every request
 - Rate limiting prevents abuse
@@ -290,7 +301,7 @@ This API is available on RapidAPI Marketplace:
 - No data stored or logged permanently
 - All requests are ephemeral
 
-## 📈 Monitoring Your Usage
+## Monitoring Your Usage
 
 Check your usage with the `/status` endpoint:
 
@@ -299,20 +310,21 @@ curl -H "x-api-key: your-key" http://localhost:8000/api/v1/status
 ```
 
 Response includes:
+
 - Current subscription tier
 - Request quota remaining
 - Premium request quota
 - Rate limit status
 - Monthly reset date
 
-## 💬 Support Levels
+## Support Levels
 
 - **FREE**: Community support via GitHub Issues
 - **BASIC**: Email support (24-48h response)
 - **PRO**: Priority email support (12-24h response)
 - **ENTERPRISE**: Dedicated support channel
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -326,7 +338,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 MIT License - feel free to use this project for personal or commercial purposes.
 
-## 🔗 Links
+## Links
 
 - **GitHub**: https://github.com/LukasTidenJ/LLM-COST-ROUTER-API
 - **RapidAPI**: [Coming Soon]
@@ -336,4 +348,4 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 Built with ❤️ by [LukasTidenJ](https://github.com/LukasTidenJ)
 
-**Made possible by**: OpenAI, Anthropic, DeepSeek, and Qwen 🚀
+**Made possible by**: OpenAI, Anthropic, DeepSeek, and Qwen
